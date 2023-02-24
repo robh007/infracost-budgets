@@ -33,6 +33,7 @@ module "budget" {
   source = "${get_repo_root()}"
   budget_name = "${local.budget_name}"
   budget_estimate_file = "${local.estimate_file}"
+  notification_subscriber_value = ["default@test.com"]
 }
 EOF
 }
