@@ -5,13 +5,6 @@ variable "budget_name" {
   type = string
 }
 
-variable "budget_list" {
-  description = "A list of names that need a budget creating, if using infracost output set to name of module that created the file"
-  default = []
-
-  type = list
-}
-
 variable "budget_type" {
   description = "Type of Budget, tracks either monetary cost or usage"
   default     = "COST"
@@ -24,6 +17,13 @@ variable "budget_limit_amount" {
   default     = 0
 
   type = number
+}
+
+variable "budget_estimate_file" {
+  description = "Output file from Infracost"
+  default     = null
+
+  type = string
 }
 
 variable "budget_limit_unit" {
@@ -56,34 +56,34 @@ variable "time_unit" {
 
 variable "notification_threshold_type" {
   description = "What kind of threshold is defined"
-  default = "ABSOLUTE_VALUE"
+  default     = "ABSOLUTE_VALUE"
 }
 
 variable "notification_threshold" {
   description = "Threshold when the notifcation be sent"
-  default = 0
+  default     = 0
 }
 
 variable "notification_comparison_operator" {
   description = "Comparison Operator, used to evaluate condition"
-  default = "EQUAL_TO"
+  default     = "EQUAL_TO"
 }
 
 variable "notification_type" {
   description = "What Kind of budget value to notify on."
-  default = "ACTUAL"
+  default     = "ACTUAL"
 }
 
 variable "notification_subscriber_value" {
   description = "Email address or SNS Topic"
-  default = []
+  default     = []
 
   type = list(string)
 }
 
 variable "budget_cost_filter" {
   description = "Filters to use when creating a budget"
-  default = {}
+  default     = []
 
-  type = map(string)
+  type = list(map(string))
 }

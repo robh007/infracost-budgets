@@ -1,3 +1,6 @@
 .idea
 .terraform
 terraform.tf*
+.infracost
+.terragrunt-cache
+.terraform.lock.hcl

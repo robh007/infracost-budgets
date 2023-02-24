@@ -1,9 +1,8 @@
 resource "aws_budgets_budget" "this" {
-  for_each = toset(var.budget_list)
-  name_prefix = each.key
+  name_prefix = var.budget_name
 
   budget_type       = var.budget_type
-  limit_amount      = fileexists("${each.key}.json") ? lookup(jsondecode(file("${each.key}.json")), "totalMonthlyCost") : var.budget_limit_amount
+  limit_amount      = fileexists(var.budget_estimate_file) ? jsondecode(file(var.budget_estimate_file))["totalMonthlyCost"] : var.budget_limit_amount
   limit_unit        = var.budget_limit_unit
   time_period_start = local.time_period_start
   time_unit         = var.time_unit
@@ -18,9 +17,14 @@ resource "aws_budgets_budget" "this" {
     subscriber_email_addresses = var.notification_subscriber_value
   }
 
-  // Bug in terraform for TagKeyValue, it doesn't support a list & the map keys overwrite each other while being processed.
-  // https://github.com/hashicorp/terraform-provider-aws/issues/13288.
-  cost_filters = var.budget_cost_filter
+  dynamic "cost_filter" {
+    for_each = var.budget_cost_filter
+    content {
+      name   = cost_filter.value.name
+      values = [lookup(cost_filter("values"), null)]
+    }
+  }
+
 }
 
 locals {
