@@ -1,32 +1,38 @@
 terraform {
-  // we just need the Terraform code to run infracost.
+  // we just need to run infracost in a before hook, infracost needs to be available on the PATH.
   before_hook "run-infracost" {
     commands = ["plan", "apply"]
-    execute = ["bash", "./infracost.sh"]
+    execute = ["infracost", "breakdown", "--path", "${get_terragrunt_dir()}", "--format", "json", "--out-file", "${local.estimate_file}"]
   }
 }
 
-// set the file name for each module.
 locals {
-  module_name = basename(abspath(get_terragrunt_dir()))
-  budget_directory = "${get_terragrunt_dir()}/../budget-alarm/${local.module_name}.json"
+  // creates an estimate file, named directroy-name.json
+  estimate_file = "${get_terragrunt_dir()}/${basename(abspath(get_terragrunt_dir()))}.json"
+  // name of the budget taken from directory name
+  budget_name = basename(abspath(get_terragrunt_dir()))
 }
 
-generate "infracost" {
-  path = "infracost.sh"
-  if_exists = "overwrite"
-  contents = <<EOF
-#!/bin/bash
-infracost --terraform-dir . --format json > ${local.budget_directory}
-EOF
-}
-
+// Generates terraform provider
 generate "provider" {
   path      = "provider.tf"
   if_exists = "overwrite"
   contents = <<EOF
 provider "aws" {
   region = "eu-west-1"
+}
+EOF
+}
+
+// Generates a small TF file with the budget module decalared
+generate "budget_module" {
+    path      = "module.tf"
+    if_exists = "overwrite"
+    contents = <<EOF
+module "budget" {
+  source = "${get_repo_root()}"
+  budget_name = "${local.budget_name}"
+  budget_estimate_file = "${local.estimate_file}"
 }
 EOF
 }
